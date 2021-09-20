@@ -1,0 +1,11 @@
+#debugging files
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+.idea/*
+
+#data preparation, release on request
+prepare_data/*
+
+#local scripts
+*.sh

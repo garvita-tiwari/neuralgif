@@ -1,0 +1,67 @@
+data:
+  data_dir: /BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl/000 # Training data directory
+  split_file: /BS/cloth3d/static00/nasa_data/smpl_pose/split_12.npz # Training data directory
+experiment:
+  root_dir: /BS/RVH_3dscan_raw2/static00/model/neuralgif/smpl # Where to save checkpoints and final trained models
+  exp_name: trial_6 # exp_name
+  data_name: SMPLdata
+  type: ShapeTrainer
+  num_part: 24
+  d_class: smpl
+model:
+  PosEnc: PosEnc
+  WeightPred:
+     name: 'WeightPred'
+     use: true
+     total_dim: 960
+     num_parts: 24
+     pose_enc: True
+     num_layers: 5
+     body_enc: True
+     beta: False
+     x_freq: 15
+     jts_freq: 15
+  CanSDF:
+    name: 'CanSDF'
+    use: true
+    total_dim: 960
+    num_parts: 24
+    pose_enc: True
+    num_layers: 5
+    body_enc: True
+    beta: False
+    x_freq: 20
+    jts_freq: 20
+  DispPred:
+    name: 'DispPred'
+    use: true
+    total_dim: 960 #[1024, 512, 256,128]
+    num_parts: 24
+    pose_enc: True
+    num_layers: 5
+    body_enc: True
+    beta: False
+    x_freq: 75
+    jts_freq: 75
+train:
+  device: cuda
+  batch_size: 4
+  continue_train: true
+  optimizer: Adam
+  optimizer_param: 0.001 #1e-4  #1e-4 for lr and 0.9 for momentum
+  eval: false
+  num_worker: 30
+  max_epoch: 20000
+  loss_type: l2
+  clamp_dist: 2.0
+  wgt_wgt: 1.0
+  sdf_wgt: 1.0
+  disp_wgt: 100.0
+  body_enc: true
+  disp_reg: true
+  train_stage_1: 500  #pretrain weight prediction
+  train_stage_2: 10000  #freeze weight prediction
+
+
+
+
