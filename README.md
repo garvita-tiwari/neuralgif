@@ -10,9 +10,9 @@ Code for  Neural-GIF: Neural Generalized Implicit Functions for Animating People
 We present Neural Generalized Implicit Functions (Neural-GIF), to animate people in clothing as a function of body pose. Neural-GIF learns directly from scans, models complex clothing and produces pose-dependent details for realistic animation. We show for four different characters the query input pose on the left (illustrated with a skeleton) and our output animation on the right.
 
 ### Dataset and Pretrained models
-    [Data and pretrained models](https://nextcloud.mpi-klsb.mpg.de/index.php/s/FweAP5Js58Q9tsq)
+    https://nextcloud.mpi-klsb.mpg.de/index.php/s/FweAP5Js58Q9tsq
     
-###Installation
+### Installation
 
     1. Install kaolin: https://github.com/NVIDIAGameWorks/kaolin
 
