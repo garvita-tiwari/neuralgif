@@ -31,8 +31,21 @@ We present Neural Generalized Implicit Functions (Neural-GIF), to animate people
 ### Generating meshes from NeuralGIF
     1. python generator.py --config=<path to config file>
 
+### Data preparation
 
+    1. SMPL pose and shape parameters:  https://github.com/bharat-b7/IPNet
+    
+    2. Save the registartion data and original scan data as: 
+        
+        a. data_dir/scan_dir: contain original scans
+        b. data_dir/beta.npy: SMPL beta parameter of subject
+        c. data_dir/pose.npz: SMPL pose parameters for all frames of scan
 
+    3. Prepare training data:
+        python prepare_data/scan_data.py -data_dir=<path to data directory>
+
+# Visualisation
+    
 ### Citation:
     @inproceedings{tiwari21neuralgif,
       title = {Neural-GIF: Neural Generalized Implicit Functions for Animating People in Clothing},
