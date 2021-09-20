@@ -39,4 +39,3 @@ We present Neural Generalized Implicit Functions (Neural-GIF), to animate people
       year = {2021},
       }
 
-### Lic
