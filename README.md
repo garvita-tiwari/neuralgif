@@ -44,7 +44,9 @@ We present Neural Generalized Implicit Functions (Neural-GIF), to animate people
     3. Prepare training data:
         python prepare_data/scan_data.py -data_dir=<path to data directory>
 
-# Visualisation
+### Visualisation
+
+    python visualisation/render_meshes.py -mesh_path=<folder containing meshes> -out_dir=<output dir>
     
 ### Citation:
     @inproceedings{tiwari21neuralgif,
