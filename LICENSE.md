@@ -1,4 +1,4 @@
-License Copyright (c) 2021 Garvita Tiwari, Max-Planck-Gesellschaft
+License Copyright (c) 2021 Garvita Tiwari, Max-Planck-Gesellschaft and Eberhard Karl University of Tübingen
 
 **Please read carefully the following terms and conditions and any accompanying documentation before you download and/or use this software and associated documentation files (the "Software").**
 

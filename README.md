@@ -13,8 +13,11 @@ We present Neural Generalized Implicit Functions (Neural-GIF), to animate people
     [Data and pretrained models](https://nextcloud.mpi-klsb.mpg.de/index.php/s/FweAP5Js58Q9tsq)
     
 ###Installation
+
     1. Install kaolin: https://github.com/NVIDIAGameWorks/kaolin
+
     2. conda env create -f neuralgif.yml
+
     3. conda activate neuralgif
 
 ### Training NeuralGIF
