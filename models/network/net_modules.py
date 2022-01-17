@@ -49,6 +49,7 @@ class WeightPred(nn.Module):
     def forward(self, x, jts,beta=None):
         batch_size = x.shape[0]
         num_pts = x.shape[1]
+
         if self.pose_enc:  #todo : check this
             x = x.reshape(x.shape[0] * x.shape[1], x.shape[2])
             x = self.x_enc.encode(x)
@@ -57,7 +58,6 @@ class WeightPred(nn.Module):
             jts = jts.reshape(jts.shape[0] * jts.shape[1], jts.shape[2])
             jts = self.jts_enc.encode(jts)
             jts = jts.reshape(batch_size, num_pts, jts.shape[1])
-
         for i in range(self.num_layers - 1):
             if i == 0:
                 if self.shape:
@@ -110,7 +110,6 @@ class CanSDF(nn.Module):
         self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x, jts,beta=None):
-
         batch_size = x.shape[0]
         num_pts = x.shape[1]
         if self.pose_enc:  #todo : check this
@@ -142,7 +141,7 @@ class CanSDF(nn.Module):
 
 class DispPred(nn.Module):
 
-    def __init__(self,opt, total_dim=960, num_parts=24, pose_enc=False, jts_freq=8, x_freq=16, num_layers=5,pose_str=False, body_enc=False,beta=False):
+    def __init__(self,opt, total_dim=960, num_parts=24, pose_enc=False, jts_freq=8, x_freq=16, num_layers=5,pose_str=False, body_enc=False,beta=False, input_dim=None):
         super(DispPred, self).__init__()
         self.num_neuron = total_dim
         self.num_layers = num_layers
@@ -172,6 +171,8 @@ class DispPred(nn.Module):
             self.jts_enc = PosEncoder(jts_freq, True)
         if self.shape:
             self.input_dim = self.input_dim +10
+        if input_dim:
+            self.input_dim = input_dim
         ##### create network
         current_dim = self.input_dim
         for _ in range(self.num_layers - 1):

@@ -1,12 +1,12 @@
 data:
-  data_dir: /BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl_norm/000 # Training data directory
-  split_file: /BS/cloth3d/static00/nasa_data/smpl_sdf/split_all.npz # Training data directory
+  data_dir: /BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl_norm # Training data directory
+  split_file: /BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl_norm/shape_all.npz # Training data directory
 experiment:
-  root_dir: /BS/RVH_3dscan_raw2/static00/model/neuralgif/smpl_all
+  root_dir: /BS/RVH_3dscan_raw2/static00/model/neuralgif/smpl_multi2
   # Where to save checkpoints and final trained models
   # exp_name: weight_can_spr # exp_name
   data_name: SMPLdata
-  type: ShapeTrainer
+  type: MultiShapeTrainer
   num_part: 24
   d_class: smpl
 model:
@@ -19,7 +19,7 @@ model:
      pose_enc: False
      num_layers: 5
      body_enc: True
-     beta: False
+     beta: True
      x_freq: 15
      jts_freq: 15
   CanSDF:
@@ -30,7 +30,7 @@ model:
     pose_enc: False
     num_layers: 5
     body_enc: True
-    beta: False
+    beta: True
     x_freq: 20
     jts_freq: 20
   DispPred:
@@ -41,7 +41,18 @@ model:
     pose_enc: False
     num_layers: 5
     body_enc: True
-    beta: False
+    beta: True
+    x_freq: 75
+    jts_freq: 75
+  DispPred_beta:
+    name: 'DispPred'
+    use: true
+    total_dim: 960 #[1024, 512, 256,128]
+    num_parts: 24
+    pose_enc: False
+    num_layers: 5
+    body_enc: True
+    beta: True
     x_freq: 75
     jts_freq: 75
 train:

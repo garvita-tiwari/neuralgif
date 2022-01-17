@@ -82,13 +82,13 @@ def save_mesh(data_tupel):
             os.makedirs(out_path)
         try:
             mesh.export(out_path + data['path'][0] +'.obj')
-            can_mesh.export(out_path + data['path'][0] +'_can.obj')
+            # can_mesh.export(out_path + data['path'][0] +'_can.obj')
         except:
             mesh.export(out_path + '/' + data['path'][0] +'.obj')
-            can_mesh.export(out_path  + '/' +  data['path'][0] +'_can.obj')
+            # can_mesh.export(out_path  + '/' +  data['path'][0] +'_can.obj')
     else:
         can_mesh = trimesh.Trimesh(can_pt)
-        can_mesh.export(out_path + data['path'][0] + '_can.obj')
+        # can_mesh.export(out_path + data['path'][0] + '_can.obj')
 def create_meshes(data_tupels):
     p = Pool(mp.cpu_count())
     p.map(save_mesh, data_tupels)

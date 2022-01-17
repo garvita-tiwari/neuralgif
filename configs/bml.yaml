@@ -1,8 +1,8 @@
 data:
-  data_dir: /BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl_norm/000 # Training data directory
-  split_file: /BS/cloth3d/static00/nasa_data/smpl_sdf/split_all.npz # Training data directory
+  data_dir: /BS/RVH_3dscan_raw2/static00/neuralGIF_data/BMLmovi_norm/Subject_11_F_MoSh # Training data directory
+  split_file: /BS/RVH_3dscan_raw2/static00/neuralGIF_data/BMLmovi_norm/Subject_11_F_MoSh/split_all.npz # Training data directory
 experiment:
-  root_dir: /BS/RVH_3dscan_raw2/static00/model/neuralgif/smpl_all
+  root_dir: /BS/RVH_3dscan_raw2/static00/model/neuralgif/smpl_new
   # Where to save checkpoints and final trained models
   # exp_name: weight_can_spr # exp_name
   data_name: SMPLdata
@@ -66,7 +66,7 @@ train:
   train_stage_2: 10000  #freeze weight prediction
 eval:
   batch_points: 1000000
-  data: smpl_all
+  data: bml_1_all
 
 
 

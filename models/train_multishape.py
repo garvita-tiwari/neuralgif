@@ -10,7 +10,7 @@ import torch.nn as nn
 
 #todo: create a base trainer
 from models.network import  net_modules
-class ShapeTrainer(object):
+class MultiShapeTrainer(object):
 
     def __init__(self,  train_dataset, val_dataset, opt):
         self.device = opt['train']['device']
@@ -26,6 +26,13 @@ class ShapeTrainer(object):
             self.model_disp = self.model_disp(opt).to(self.device)
             self.optimizer_disp = getattr(optim, opt['train']['optimizer'])
             self.optimizer_disp = self.optimizer_disp(self.model_disp.parameters(), opt['train']['optimizer_param'])
+
+        if opt['model']['DispPred_beta']['use']:
+            self.model_disp_beta = getattr(net_modules, opt['model']['DispPred_beta']['name'])
+            self.model_disp_beta = self.model_disp_beta(opt, input_dim=13).to(self.device) #todo: hardcoded change this
+            self.optimizer_disp_beta = getattr(optim, opt['train']['optimizer'])
+            self.optimizer_disp_beta = self.optimizer_disp_beta(self.model_disp.parameters(), opt['train']['optimizer_param'])
+
 
         if opt['model']['WeightPred']['use']:
             self.model_wgt = getattr(net_modules, opt['model']['WeightPred']['name'])
@@ -82,6 +89,8 @@ class ShapeTrainer(object):
         if self.model_disp and ep > self.train_stage_2:
             self.model_disp.train()
             self.optimizer_disp.zero_grad()
+            self.model_disp_beta.train()
+            self.optimizer_disp_beta.zero_grad()
 
         loss, loss_dict = self.compute_loss(batch, ep)
         loss.backward()
@@ -91,6 +100,7 @@ class ShapeTrainer(object):
             self.optimizer_wgt.step()
         if self.model_disp and ep > self.train_stage_2:
             self.optimizer_disp.step()
+            self.optimizer_disp_beta.step()
 
         return loss.item(), loss_dict
 
@@ -121,6 +131,9 @@ class ShapeTrainer(object):
         can_pts_gt = batch.get("can_pts_gt").to(device)
         gt_skin = batch.get("gt_skin").to(device)
         joints = batch.get("joints").to(device)
+        beta_d = batch.get("beta").to(device)
+
+        beta = beta_d.unsqueeze(1).repeat(1, smpl_vert.shape[1], 1)
         pts_in = pts.unsqueeze(2).repeat(1, 1, self.n_part, 1)
         joints = joints.unsqueeze(1).repeat(1, smpl_vert.shape[1], 1, 1)
         loss_dict = {}
@@ -135,8 +148,8 @@ class ShapeTrainer(object):
             body_enc_feat_smpl = torch.sqrt(torch.sum(body_enc_feat_smpl * body_enc_feat_smpl, dim=3))
             body_enc_feat_smpl = torch.nn.functional.normalize(body_enc_feat_smpl, p=1.0,dim=2)
 
-            weight_pred = self.model_wgt(pts, body_enc_feat, pose_in)
-            weight_smpl = self.model_wgt(smpl_vert, body_enc_feat_smpl, pose_in)
+            weight_pred = self.model_wgt(pts, body_enc_feat, beta)
+            weight_smpl = self.model_wgt(smpl_vert, body_enc_feat_smpl, beta)
             #
             # import ipdb
             # ipdb.set_trace()
@@ -171,8 +184,8 @@ class ShapeTrainer(object):
             body_enc_feat_smpl = torch.nn.functional.normalize(body_enc_feat_smpl, p=1.0,dim=2)
 
 
-            weight_pred = self.model_wgt(pts, body_enc_feat, pose_in)
-            weight_smpl = self.model_wgt(smpl_vert, body_enc_feat_smpl, pose_in)
+            weight_pred = self.model_wgt(pts, body_enc_feat, beta)
+            weight_smpl = self.model_wgt(smpl_vert, body_enc_feat_smpl, beta)
 
             w1 = self.loss_l1(weight_smpl, gt_skin)
             w2 =  self.loss_l1(weight_pred, skin_bp)
@@ -192,10 +205,11 @@ class ShapeTrainer(object):
             weight_vec = weight_vec.reshape(weight_pred.shape[0], weight_pred.shape[1], pose_in.shape[2])
             weighted_pose = weight_vec*pose_in
             if self.model_disp and ep > self.train_stage_2:
-                disp = self.model_disp(can_pt, weighted_pose, body_enc_feat)
-                can_pt = can_pt + disp
+                disp = self.model_disp(can_pt, weighted_pose)
+                disp_beta = self.model_disp_beta(can_pt, beta)
+                can_pt = can_pt + disp + disp_beta
 
-            sdf_pred = self.model_occ(can_pt, weighted_pose, body_enc_feat)[:,:,0]
+            sdf_pred = self.model_occ(can_pt, weighted_pose, beta)[:,:,0]
 
             # if self.d_class == 'smpl':
             #     sdf_pred = self.out_act(sdf_pred)
@@ -272,7 +286,9 @@ class ShapeTrainer(object):
                             'model_state_wgt_dict': self.model_wgt.state_dict(),
                             'optimizer_wgt_state_dict': self.optimizer_wgt.state_dict(),
                             'model_state_disp_dict': self.model_disp.state_dict(),
-                            'optimizer_disp_state_dict': self.optimizer_disp.state_dict()}, path,
+                            'optimizer_disp_state_dict': self.optimizer_disp.state_dict(),
+                            'model_state_disp_beta_dict': self.model_disp_beta.state_dict(),
+                            'optimizer_disp_beta_state_dict': self.optimizer_disp_beta.state_dict() }, path,
                            _use_new_zipfile_serialization=False)
 
             else:
@@ -302,6 +318,8 @@ class ShapeTrainer(object):
         if self.model_disp:
             self.model_disp.load_state_dict(checkpoint['model_state_disp_dict'])
             self.optimizer_disp.load_state_dict(checkpoint['optimizer_disp_state_dict'])
+            self.model_disp_beta.load_state_dict(checkpoint['model_state_disp_beta_dict'])
+            self.optimizer_disp_beta.load_state_dict(checkpoint['optimizer_disp_beta_state_dict'])
 
         epoch = checkpoint['epoch']
         return epoch

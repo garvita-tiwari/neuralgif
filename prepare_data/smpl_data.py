@@ -15,7 +15,9 @@ sys.path.append('/BS/garvita/work/code/cloth_static/TailorNet')
 import ipdb
 
 from models.torch_smpl4garment import TorchSMPL4Garment
-data_dir = '/BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl'
+from utils.rotation import normalize_y_rotation
+data_dir = '/BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl_norm'
+mesh_dir_dataa = '/BS/cloth3d/static00/neuralGIF_data/smpl_norm'
 
 
 if __name__ == "__main__":
@@ -35,11 +37,10 @@ if __name__ == "__main__":
     sample_num = 100000
     beta = np.load('/BS/cloth-anim/static00/tailor_data/shirt_male/shape/beta_{:03}.npy'.format(args.frame))
     cmu_sub = '{:03}'.format(args.frame)
-
     sub_folder  =os.path.join(data_dir, cmu_sub)
     if not os.path.exists(sub_folder):
         os.makedirs(sub_folder)
-    mesh_dir  =os.path.join(data_dir, cmu_sub +'_mesh')
+    mesh_dir  =os.path.join(mesh_dir_dataa, cmu_sub +'_mesh')
     if not os.path.exists(mesh_dir):
         os.makedirs(mesh_dir)
     print(len(poses))
@@ -47,14 +48,14 @@ if __name__ == "__main__":
         frame_num = '{:06}'.format(j)
 
         out_file = os.path.join(sub_folder, '{}.npz'.format(frame_num))
+        frame_pose = np.array(poses[j])
+        frame_pose = normalize_y_rotation(frame_pose)
+        print(frame_pose[:3])
 
-        if os.path.exists(out_file):
-            print('already done:  ', out_file)
-            continue
 
         #creat smpl
-        frame_pose = np.array(poses[j])
-        frame_pose[:3] = 0.0
+
+        #frame_pose[:3] = 0.0
         pose_torch = torch.from_numpy(frame_pose.astype(np.float32)).unsqueeze(0)
         betas_torch = torch.from_numpy(beta[:10].astype(np.float32)).unsqueeze(0)
 
@@ -68,6 +69,9 @@ if __name__ == "__main__":
         m1 = Mesh(v=smpl_verts.detach().numpy()[0], f=smpl_torch.faces)
         #save mesh for rendering
         m1.write_obj(os.path.join(mesh_dir,'{}.obj'.format(frame_num) ))
+        if os.path.exists(out_file):
+            print('already done:  ', out_file)
+            continue
         skinning_pt = smpl_torch.weight.detach().numpy()[0]
         #ipdb.set_trace()
         #sample points near the smpl posed surface
@@ -107,7 +111,8 @@ if __name__ == "__main__":
         bottom_cotner, upper_corner = mesh.bounds
 
         np.savez(out_file,gt_skin=gt_skin,  bounds=np.array([bottom_cotner, upper_corner]), posed_points=boundary_points,
-                 sdf=df, can_points=transformed_pt, joint=joints, transform=transform_np, pose=frame_pose, smpl_verts=m1.v)
+                 sdf=df, can_points=transformed_pt, joint=joints, transform=transform_np, pose=frame_pose,
+                 org_pose=np.array(poses[j]), smpl_verts=m1.v)
 
         print('Finished {} {} '.format(cmu_sub, frame_num))
 

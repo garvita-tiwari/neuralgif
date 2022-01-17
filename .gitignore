@@ -6,6 +6,12 @@ __pycache__/
 
 #data preparation, release on request
 prepare_data/*
+prepare_data/amass.py
 
 #local scripts
 *.sh
+
+
+#local debug and eval
+eval.py
+models/eval_shape.py

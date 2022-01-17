@@ -4,14 +4,14 @@ from torch.utils.data import Dataset
 import os
 import numpy as np
 import torch
-
+import ipdb
 
 
 class SMPLdata(Dataset):
 
 
     def __init__(self, mode, data_path, split_file, batch_size, num_workers=12, num_sample_points = 1024,  sample_distribution = [0.5, 0.5],
-                 sample_sigmas = [0.01, 0.1], num_parts=24,  d_class='smpl' ,**kwargs):
+                 sample_sigmas = [0.01, 0.1], num_parts=24, shape=False,  d_class='smpl' ,**kwargs):
 
 
         self.sample_distribution = np.array(sample_distribution)
@@ -33,13 +33,16 @@ class SMPLdata(Dataset):
         self.global_scale = 1.0
         self.mode = mode
         self.d_class = d_class
-        self.skinning =np.load('/BS/garvita2/static00/cloth_seq/upper_gar/skinning_body.npy')
-        self.tpose_verts = np.load('/BS/RVH_3dscan_raw2/static00/neuralGIF_data/smpl/000_tpose.npy')
+        self.skinning =np.load('./data_files/skinning_body.npy')
+
+        self.tpose_verts = np.load('./data_files/000_tpose.npy')
+        self.shape = shape
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
+
 
         path = self.path  + self.data[idx] +'.npz'
         #load skinning for boundary points
@@ -109,6 +112,12 @@ class SMPLdata(Dataset):
 
         joints = nasa_data['joint']
 
+        if self.shape:
+            beta_id = self.data[idx].split('/')[1]
+            beta = np.load('/BS/cloth-anim/static00/tailor_data/shirt_male/shape/beta_{}.npy'.format(beta_id))[:10]
+        else:
+            beta = None
+
         return {'path': self.data[idx],
                 'gt_skin': np.array(gt_skin, dtype=np.float32),
                 'skin_bp': np.array(skin_bp, dtype=np.float32),
@@ -122,7 +131,8 @@ class SMPLdata(Dataset):
                 'joints': np.array(joints, dtype=np.float32),
                 'can_smpl': np.array(can_smpl, dtype=np.float32),
                 'can_pts_gt': np.array(can_pts, dtype=np.float32),
-                'min': min, 'max': max}
+                'min': min, 'max': max,
+                'beta': np.array(beta, dtype=np.float32)}
 
     def get_loader(self, shuffle =True):
 

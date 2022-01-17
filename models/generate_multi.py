@@ -17,7 +17,7 @@ import ipdb
 
 #todo: create a base trainer
 from models.network import  net_modules
-class ShapeTrainer(object):
+class MultiShapeTrainer(object):
 
     def __init__(self,   opt, checkpoint, resolution=64):
         self.device = opt['train']['device']
@@ -32,6 +32,10 @@ class ShapeTrainer(object):
             self.model_disp = self.model_disp(opt).to(self.device)
             self.model_disp.eval()
 
+        if opt['model']['DispPred_beta']['use']:
+            self.model_disp_beta = getattr(net_modules, opt['model']['DispPred_beta']['name'])
+            self.model_disp_beta = self.model_disp_beta(opt, input_dim=13).to(self.device) #todo: hardcoded change this
+            self.model_disp_beta.eval()
 
         if opt['model']['WeightPred']['use']:
             self.model_wgt = getattr(net_modules, opt['model']['WeightPred']['name'])
@@ -80,7 +84,7 @@ class ShapeTrainer(object):
         gt_skin =  data["gt_skin"].to(device)
         pose = data['pose'].to(device)
         joints = data['joints'].to(device)
-
+        beta_n = data['beta'].to(device)
 
         # split points to handle higher resolution
         grid_values = []
@@ -101,11 +105,13 @@ class ShapeTrainer(object):
             all_pts.extend(pointsf[0].detach().cpu().numpy())
             with torch.no_grad():
                 pts_in = pointsf.unsqueeze(2).repeat(1, 1, self.n_part, 1)
+                beta = beta_n.unsqueeze(1).repeat(1, pointsf.shape[1], 1)
+
                 body_enc_feat = pts_in - joints
                 body_enc_feat = torch.sqrt(torch.sum(body_enc_feat * body_enc_feat, dim=3))
                 body_enc_feat = torch.nn.functional.normalize(body_enc_feat, p=1.0, dim=2)
 
-                weight_pred = self.model_wgt(pointsf, body_enc_feat, pose_in)
+                weight_pred = self.model_wgt(pointsf, body_enc_feat, beta)
                 weight_vec = weight_pred.unsqueeze(3).repeat(1, 1, 1, int(pose_in.shape[2] / 24))
                 weight_vec = weight_vec.reshape(weight_pred.shape[0], weight_pred.shape[1], pose_in.shape[2])
                 weighted_pose = weight_vec * pose_in
@@ -114,8 +120,11 @@ class ShapeTrainer(object):
                 can_np = can_pt.detach().cpu().numpy()[0]
                 if self.model_disp:
                     disp = self.model_disp(can_pt, weighted_pose, body_enc_feat)
-                    can_pt = can_pt + disp
-                sdf_pred = self.model_occ(can_pt, weighted_pose, body_enc_feat)[:, :, 0]
+                    disp_beta = self.model_disp_beta(can_pt, beta)
+                    can_pt = can_pt + disp + disp_beta
+
+                sdf_pred = self.model_occ(can_pt, weighted_pose, beta)[:, :, 0]
+
 
                 logits = sdf_pred
                 #append canonical points which lie inside
