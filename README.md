@@ -42,7 +42,7 @@ We present Neural Generalized Implicit Functions (Neural-GIF), to animate people
         c. data_dir/pose.npz: SMPL pose parameters for all frames of scan
 
     3. Prepare training data:
-        python prepare_data/scan_data.py -data_dir=<path to data directory>
+        python prepare_data/clothseq_data.py -data_dir=<path to data directory>
 
 ### Visualisation
 
